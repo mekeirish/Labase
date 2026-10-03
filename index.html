@@ -192,7 +192,6 @@
             50% { opacity: 0.55; }
         }
 
-        /* ===== BOUTON ACCÈS ===== */
         .gh-key-btn {
             position: relative;
             display: flex;
@@ -363,7 +362,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* ===== MODAL ===== */
         .gh-modal {
             position: fixed;
             inset: 0;
@@ -823,12 +821,12 @@
         }
         .pwa-error .err-btn:hover { filter: brightness(1.3); }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .workspace { padding: 8px; }
-            .nav-bar { padding: 8px; gap: 5px; }
-            .btn-socket { padding: 6px 3px; gap: 2px; }
-            .pwa-btn { font-size: 8px; letter-spacing: 0; }
-            .led { width: 6px; height: 6px; }
+            .nav-bar { padding: 8px; gap: 4px; }
+            .btn-socket { padding: 6px 2px; gap: 2px; }
+            .pwa-btn { font-size: 7px; letter-spacing: 0; }
+            .led { width: 5px; height: 5px; }
             .pwa-card-url { display: none; }
             .welcome-signature { font-size: 10px; letter-spacing: 3px; }
             .welcome-signature::before,
@@ -844,10 +842,7 @@
     <meta name="theme-color" content="#4b6cb7" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4b6cb7">
-<link rel="apple-touch-icon" href="icon.png"></head>
+</head>
 <body>
 
     <nav class="nav-bar">
@@ -1060,7 +1055,7 @@
         }
 
         // ================================================================
-        //  ONGLETS FIXES
+        //  ONGLETS FIXES (6 onglets)
         // ================================================================
         var pwaList = [
             {
@@ -1087,13 +1082,18 @@
                 id: 'pwa-5', name: 'APKor', url: 'https://mekeirish.github.io/Bapkor/',
                 color: '#facc15', colorDim: 'rgba(250, 204, 21, 0.5)',
                 colorBg: 'rgba(250, 204, 21, 0.14)', colorBgSoft: 'rgba(250, 204, 21, 0.06)'
+            },
+            {
+                id: 'pwa-6', name: 'Electro', url: 'https://mekeirish.github.io/Belectrocode/',
+                color: '#c4544a', colorDim: 'rgba(196, 84, 74, 0.5)',
+                colorBg: 'rgba(196, 84, 74, 0.14)', colorBgSoft: 'rgba(196, 84, 74, 0.06)'
             }
         ];
 
         // ================================================================
         //  ÉTAT
         // ================================================================
-        var ACTIVE_KEY = 'activePwa_pc_v10';
+        var ACTIVE_KEY = 'activePwa_pc_v11';
         var GS_STORAGE = 'gs_data_v1';
 
         var activePwaId = null;
@@ -1105,7 +1105,7 @@
         }
 
         // ================================================================
-        //  ACCÈS — stockage local (noms neutres)
+        //  ACCÈS — stockage local
         // ================================================================
         function getAccess() {
             return localStorage.getItem(GS_STORAGE) || null;
@@ -1576,7 +1576,5 @@
         updateVisibility();
         updateAccessBtn();
     </script>
-
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));}</script>
 </body>
 </html>
