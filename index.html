@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>BUNDLECODE // PC</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0b0e1a, #060810);
+            color: #e2e8f0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
+
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(16, 18, 32, 0.7);
+            backdrop-filter: blur(18px) saturate(1.4);
+            -webkit-backdrop-filter: blur(18px) saturate(1.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+            flex-wrap: nowrap;
+        }
+
+        #tabs-container { display: flex; gap: 8px; flex: 1; min-width: 0; }
+
+        .btn-socket {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 8px 6px;
+            min-width: 0;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-socket::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 10px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 60%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .btn-socket:hover::after { opacity: 1; }
+        .btn-socket:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.14);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes tapPulse {
+            0% { transform: scale(1); }
+            40% { transform: scale(0.94); }
+            100% { transform: scale(1); }
+        }
+        .btn-socket.tapping { animation: tapPulse 0.25s cubic-bezier(0.2, 0.9, 0.4, 1); }
+
+        .led {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #3c465a;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+        }
+        .pwa-btn {
+            background: none;
+            border: none;
+            color: #94a0b8;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 0;
+            pointer-events: none;
+            transition: color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .workspace {
+            flex: 1;
+            padding: 12px 16px;
+            overflow: hidden;
+            background: radial-gradient(ellipse at 30% 40%, rgba(40, 60, 120, 0.08), transparent 70%);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            position: relative;
+        }
+
+        .welcome {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+            z-index: 5;
+        }
+        .welcome.visible { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        .welcome-logo-wrap {
+            position: relative;
+            display: inline-block;
+            animation: floatLogo 6s ease-in-out infinite;
+        }
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .welcome-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 520px;
+            height: 520px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(139, 128, 200, 0.06) 0%, rgba(139, 128, 200, 0.02) 35%, transparent 65%);
+            pointer-events: none;
+            z-index: -1;
+            animation: pulseGlow 6s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+        }
+
+        .welcome-logo-svg {
+            display: block;
+            width: clamp(120px, 16vw, 200px);
+            height: auto;
+            filter: drop-shadow(0 0 24px rgba(139, 128, 200, 0.12));
+        }
+
+        .welcome-logo-svg .bracket-left { stroke: url(#gradLeft); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        .welcome-logo-svg .bracket-right { stroke: url(#gradRight); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        .welcome-logo-svg .slash { stroke: url(#gradSlash); stroke-width: 6; stroke-linecap: round; fill: none; filter: drop-shadow(0 0 8px rgba(200, 190, 240, 0.25)); }
+        .welcome-logo-svg .tip { fill: #c8c0f0; opacity: 0.85; filter: drop-shadow(0 0 6px rgba(200, 192, 240, 0.6)); }
+        .welcome-logo-svg .particle { fill: #c8c0f0; opacity: 0; animation: particleFade 4s ease-in-out infinite; }
+        .welcome-logo-svg .particle:nth-child(2) { animation-delay: 0.5s; }
+        .welcome-logo-svg .particle:nth-child(3) { animation-delay: 1.2s; }
+        .welcome-logo-svg .particle:nth-child(4) { animation-delay: 2s; }
+        .welcome-logo-svg .particle:nth-child(5) { animation-delay: 2.8s; }
+        @keyframes particleFade {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.55; }
+        }
+
+        /* ===== BOUTON ACCÈS ===== */
+        .gh-key-btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 26px 14px 20px;
+            background: linear-gradient(135deg, rgba(24, 26, 42, 0.85), rgba(16, 18, 30, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            animation: ghFadeIn 0.5s cubic-bezier(0.2, 0.9, 0.4, 1);
+        }
+        @keyframes ghFadeIn {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .gh-key-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            background: radial-gradient(circle at 20% 50%, rgba(200, 192, 240, 0.08), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .gh-key-btn:hover::before { opacity: 1; }
+
+        .gh-key-btn:hover {
+            border-color: rgba(200, 192, 240, 0.25);
+            transform: translateY(-2px);
+            box-shadow:
+                0 8px 28px rgba(0, 0, 0, 0.45),
+                0 0 24px rgba(139, 128, 200, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .gh-key-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .gh-key-btn.configured {
+            border-color: rgba(74, 222, 128, 0.25);
+            background: linear-gradient(135deg, rgba(22, 32, 26, 0.85), rgba(14, 22, 18, 0.9));
+        }
+        .gh-key-btn.configured:hover {
+            border-color: rgba(74, 222, 128, 0.45);
+            box-shadow:
+                0 8px 28px rgba(0, 0, 0, 0.45),
+                0 0 24px rgba(74, 222, 128, 0.12);
+        }
+
+        .gh-icon-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(139, 128, 200, 0.12);
+            border: 1px solid rgba(139, 128, 200, 0.2);
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        .gh-key-btn.configured .gh-icon-wrap {
+            background: rgba(74, 222, 128, 0.12);
+            border-color: rgba(74, 222, 128, 0.25);
+        }
+        .gh-key-btn:hover .gh-icon-wrap {
+            background: rgba(139, 128, 200, 0.18);
+            transform: rotate(-4deg) scale(1.05);
+        }
+        .gh-key-btn.configured:hover .gh-icon-wrap {
+            background: rgba(74, 222, 128, 0.18);
+        }
+
+        .gh-icon-wrap svg {
+            width: 22px;
+            height: 22px;
+            fill: #b8b0dc;
+            transition: fill 0.3s;
+        }
+        .gh-key-btn.configured .gh-icon-wrap svg { fill: #6ee7a0; }
+
+        .gh-text-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            min-width: 0;
+        }
+        .gh-key-label {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            color: #d8d4ee;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+        .gh-key-btn.configured .gh-key-label { color: #a8e8c0; }
+
+        .gh-key-hint {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            color: #6a7086;
+            transition: color 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+        .gh-key-btn.configured .gh-key-hint { color: #6a9a7a; }
+
+        .gh-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3c465a;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+            flex-shrink: 0;
+            transition: all 0.3s;
+            margin-left: 4px;
+        }
+        .gh-key-btn.configured .gh-status-dot {
+            background: #4ade80;
+            box-shadow: 0 0 12px #4ade80, inset 0 1px 2px rgba(0, 0, 0, 0.3);
+            animation: ghDotPulse 2s ease-in-out infinite;
+        }
+        @keyframes ghDotPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .gh-copy-feedback {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(6px);
+            background: rgba(74, 222, 128, 0.15);
+            border: 1px solid rgba(74, 222, 128, 0.4);
+            color: #86efac;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+        .gh-copy-feedback.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== MODAL ===== */
+        .gh-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            animation: modalFadeIn 0.25s ease;
+        }
+        @keyframes modalFadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .gh-modal.open { display: flex; }
+
+        .gh-modal-content {
+            background: linear-gradient(180deg, rgba(20, 22, 38, 0.98), rgba(12, 14, 24, 0.98));
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border-radius: 18px;
+            max-width: 520px;
+            width: 100%;
+            padding: 26px 26px 22px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow:
+                0 40px 100px rgba(0, 0, 0, 0.85),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            animation: modalSlideIn 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
+        }
+        @keyframes modalSlideIn {
+            0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .gh-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .gh-modal-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(139, 128, 200, 0.12);
+            border: 1px solid rgba(139, 128, 200, 0.2);
+            flex-shrink: 0;
+        }
+        .gh-modal-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: #b8b0dc;
+        }
+        .gh-modal-titles {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .gh-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #d8d4ee;
+            letter-spacing: 0.5px;
+        }
+        .gh-modal-sub {
+            font-size: 11px;
+            color: #6a7086;
+            letter-spacing: 0.3px;
+        }
+        .gh-modal-close {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            color: #8890a6;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .gh-modal-close:hover {
+            background: rgba(255, 255, 255, 0.10);
+            color: #fff;
+            transform: rotate(90deg);
+        }
+
+        .gh-modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .gh-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            transition: 0.2s;
+            overflow: hidden;
+        }
+        .gh-input-wrap:focus-within {
+            border-color: rgba(139, 128, 200, 0.5);
+            box-shadow: 0 0 0 3px rgba(139, 128, 200, 0.1);
+        }
+        .gh-input-wrap input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 12px 14px;
+            color: #e0e0ec;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+            width: 100%;
+        }
+        .gh-input-wrap input::placeholder {
+            color: #4a5064;
+            letter-spacing: 0.3px;
+        }
+        .gh-input-toggle {
+            background: transparent;
+            border: none;
+            color: #6a7086;
+            cursor: pointer;
+            padding: 8px 12px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gh-input-toggle:hover { color: #b8b0dc; }
+        .gh-input-toggle svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .gh-help {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            background: rgba(139, 128, 200, 0.05);
+            border: 1px solid rgba(139, 128, 200, 0.1);
+            border-radius: 8px;
+            font-size: 11px;
+            color: #8a90a6;
+            line-height: 1.5;
+        }
+        .gh-help-icon {
+            flex-shrink: 0;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .gh-help code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            color: #b8b0dc;
+        }
+
+        .gh-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .gh-modal-actions button {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+            font-family: inherit;
+        }
+        .gh-btn-delete {
+            background: rgba(60, 20, 20, 0.4);
+            border-color: rgba(255, 100, 100, 0.2);
+            color: #ff8a8a;
+        }
+        .gh-btn-delete:hover {
+            background: rgba(80, 25, 25, 0.6);
+            border-color: rgba(255, 100, 100, 0.4);
+        }
+        .gh-btn-cancel {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.08);
+            color: #a0a6bc;
+        }
+        .gh-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+        }
+        .gh-btn-save {
+            background: linear-gradient(135deg, rgba(139, 128, 200, 0.35), rgba(139, 128, 200, 0.2));
+            border-color: rgba(139, 128, 200, 0.4);
+            color: #fff;
+        }
+        .gh-btn-save:hover {
+            background: linear-gradient(135deg, rgba(139, 128, 200, 0.5), rgba(139, 128, 200, 0.35));
+            border-color: rgba(139, 128, 200, 0.6);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(139, 128, 200, 0.2);
+        }
+        .gh-btn-save:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .welcome-signature {
+            position: absolute;
+            bottom: 28px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #566582;
+        }
+        .welcome-signature::before,
+        .welcome-signature::after {
+            content: '';
+            display: inline-block;
+            width: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #3c465a, transparent);
+            vertical-align: middle;
+            margin: 0 14px;
+        }
+        .welcome-signature span {
+            background: linear-gradient(135deg, #a0a0d0, #80b8d0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .cards-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            z-index: 1;
+        }
+
+        .pwa-single {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            background: rgba(8, 10, 22, 0.7);
+            backdrop-filter: blur(12px) saturate(1.2);
+            -webkit-backdrop-filter: blur(12px) saturate(1.2);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            overflow: hidden;
+            min-height: 0;
+            opacity: 0;
+            transform: scale(0.98) translateY(6px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .pwa-single.visible {
+            display: flex;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            z-index: 2;
+        }
+        .pwa-single.hidden-card { display: none; }
+
+        .pwa-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(0, 0, 0, 0.25);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            flex-shrink: 0;
+            min-height: 42px;
+        }
+        .pwa-card-title {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .pwa-card-title .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .pwa-card-url {
+            font-size: 10px;
+            color: #4a5a6e;
+            font-family: 'Courier New', monospace;
+            margin-left: 8px;
+            font-weight: 400;
+            letter-spacing: 0;
+            text-transform: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pwa-card-reload {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            color: #6a7a8e;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            padding: 4px 10px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .pwa-card-reload:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #fff;
+        }
+
+        .pwa-card-body {
+            flex: 1;
+            position: relative;
+            background: #060810;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .pwa-card-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #060810;
+            display: block;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            overflow: auto;
+        }
+        .pwa-card-body iframe::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+        .pwa-loader {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: #060810;
+            z-index: 2;
+            transition: opacity 0.3s;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .pwa-loader.hidden { opacity: 0; pointer-events: none; }
+        .pwa-loader .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .pwa-error {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #060810;
+            z-index: 3;
+            padding: 20px;
+            text-align: center;
+        }
+        .pwa-error .err-icon { font-size: 40px; margin-bottom: 4px; }
+        .pwa-error .err-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ff6b6b;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .pwa-error .err-msg {
+            font-size: 12px;
+            color: #6a7a8e;
+            line-height: 1.5;
+            max-width: 320px;
+        }
+        .pwa-error .err-url {
+            font-size: 11px;
+            color: #4a5a6e;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 4px;
+            max-width: 100%;
+        }
+        .pwa-error .err-btn {
+            margin-top: 8px;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+            background: transparent;
+        }
+        .pwa-error .err-btn:hover { filter: brightness(1.3); }
+
+        @media (max-width: 768px) {
+            .workspace { padding: 8px; }
+            .nav-bar { padding: 8px; gap: 5px; }
+            .btn-socket { padding: 6px 3px; gap: 2px; }
+            .pwa-btn { font-size: 8px; letter-spacing: 0; }
+            .led { width: 6px; height: 6px; }
+            .pwa-card-url { display: none; }
+            .welcome-signature { font-size: 10px; letter-spacing: 3px; }
+            .welcome-signature::before,
+            .welcome-signature::after { width: 20px; margin: 0 8px; }
+            .gh-key-btn { padding: 12px 18px 12px 14px; gap: 10px; }
+            .gh-icon-wrap { width: 36px; height: 36px; }
+            .gh-icon-wrap svg { width: 20px; height: 20px; }
+            .gh-key-label { font-size: 12px; }
+            .gh-key-hint { font-size: 9px; }
+        }
+    </style>
+
+    <meta name="theme-color" content="#4b6cb7" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4b6cb7">
+<link rel="apple-touch-icon" href="icon.png"></head>
+<body>
+
+    <nav class="nav-bar">
+        <div id="tabs-container"></div>
+    </nav>
+
+    <main class="workspace">
+        <div class="welcome visible" id="welcome">
+            <div class="welcome-logo-wrap">
+                <div class="welcome-glow"></div>
+                <svg class="welcome-logo-svg" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="gradLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#b0a8d8"/>
+                            <stop offset="100%" stop-color="#8a86b8"/>
+                        </linearGradient>
+                        <linearGradient id="gradRight" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#9ac0d8"/>
+                            <stop offset="100%" stop-color="#7fa8c4"/>
+                        </linearGradient>
+                        <linearGradient id="gradSlash" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#b8b0dc"/>
+                            <stop offset="50%" stop-color="#a8a8cc"/>
+                            <stop offset="100%" stop-color="#a0b8cc"/>
+                        </linearGradient>
+                    </defs>
+                    <path class="bracket-left" d="M 62 20 L 22 60 L 62 100"/>
+                    <path class="bracket-right" d="M 138 20 L 178 60 L 138 100"/>
+                    <path class="slash" d="M 118 15 L 82 105"/>
+                    <circle class="tip" cx="62" cy="20" r="3.5"/>
+                    <circle class="tip" cx="22" cy="60" r="3.5"/>
+                    <circle class="tip" cx="62" cy="100" r="3.5"/>
+                    <circle class="tip" cx="138" cy="20" r="3.5"/>
+                    <circle class="tip" cx="178" cy="60" r="3.5"/>
+                    <circle class="tip" cx="138" cy="100" r="3.5"/>
+                    <circle class="particle" cx="100" cy="10" r="1.8"/>
+                    <circle class="particle" cx="30" cy="35" r="1.5"/>
+                    <circle class="particle" cx="170" cy="35" r="1.5"/>
+                    <circle class="particle" cx="30" cy="85" r="1.5"/>
+                    <circle class="particle" cx="170" cy="85" r="1.5"/>
+                </svg>
+            </div>
+
+            <!-- BOUTON ACCÈS -->
+            <div class="gh-key-btn" id="gh-key-btn" oncontextmenu="event.preventDefault()">
+                <div class="gh-copy-feedback" id="gh-copy-feedback">✓ Accès copié</div>
+                <div class="gh-icon-wrap">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                    </svg>
+                </div>
+                <div class="gh-text-wrap">
+                    <span class="gh-key-label" id="gh-key-label">Accès GitHub</span>
+                    <span class="gh-key-hint" id="gh-key-hint">Non configuré · Appui long</span>
+                </div>
+                <div class="gh-status-dot" id="gh-status-dot"></div>
+            </div>
+
+            <div class="welcome-signature">Laiche <span>Brahim</span> 2026</div>
+        </div>
+
+        <div class="cards-container" id="cards-container"></div>
+    </main>
+
+    <!-- MODAL ACCÈS -->
+    <div class="gh-modal" id="gh-modal">
+        <div class="gh-modal-content">
+            <div class="gh-modal-header">
+                <div class="gh-modal-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                    </svg>
+                </div>
+                <div class="gh-modal-titles">
+                    <div class="gh-modal-title">Accès GitHub</div>
+                    <div class="gh-modal-sub">Stockage local dans le navigateur</div>
+                </div>
+                <button class="gh-modal-close" id="gh-modal-close">✕</button>
+            </div>
+
+            <div class="gh-modal-body">
+                <div class="gh-input-wrap">
+                    <input type="password" id="gh-key-input" placeholder="xxxxxxxxxxxxxxxxxxxxxxxx" spellcheck="false" autocomplete="off" />
+                    <button class="gh-input-toggle" id="gh-input-toggle" title="Afficher / masquer">
+                        <svg id="gh-eye-icon" viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="gh-help">
+                    <span class="gh-help-icon">💡</span>
+                    <div>
+                        Génère un code d'accès depuis les paramètres de ton compte développeur.
+                        Coche les scopes <code>repo</code> et <code>workflow</code>. Le code reste uniquement sur cet appareil.
+                    </div>
+                </div>
+            </div>
+
+            <div class="gh-modal-actions">
+                <button class="gh-btn-delete" id="gh-btn-delete">🗑 Supprimer</button>
+                <button class="gh-btn-cancel" id="gh-btn-cancel">Annuler</button>
+                <button class="gh-btn-save" id="gh-btn-save">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  AUDIO + VIBRATION
+        // ================================================================
+        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function createWhiteNoiseBuffer(duration) {
+            var sampleRate = audioCtx.sampleRate;
+            var bufferSize = Math.floor(sampleRate * duration);
+            var buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+            var data = buffer.getChannelData(0);
+            for (var i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.6;
+            return buffer;
+        }
+
+        function playClickSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            var now = audioCtx.currentTime;
+            var noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = createWhiteNoiseBuffer(0.04);
+            var noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.09, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+            var filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 2400;
+            filter.Q.value = 2;
+            noiseSource.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noiseSource.start(now);
+            noiseSource.stop(now + 0.04);
+
+            var osc = audioCtx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1400, now);
+            osc.frequency.exponentialRampToValueAtTime(700, now + 0.05);
+            var oscGain = audioCtx.createGain();
+            oscGain.gain.setValueAtTime(0.06, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        }
+
+        function playOpenSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            var now = audioCtx.currentTime;
+            var osc = audioCtx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(320, now);
+            osc.frequency.exponentialRampToValueAtTime(560, now + 0.1);
+            var oscGain = audioCtx.createGain();
+            oscGain.gain.setValueAtTime(0.08, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.12);
+        }
+
+        function playCloseSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            var now = audioCtx.currentTime;
+            var osc = audioCtx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(560, now);
+            osc.frequency.exponentialRampToValueAtTime(280, now + 0.1);
+            var oscGain = audioCtx.createGain();
+            oscGain.gain.setValueAtTime(0.08, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.12);
+        }
+
+        function playSuccessSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            var now = audioCtx.currentTime;
+            [523.25, 659.25, 783.99].forEach(function(freq, i) {
+                var osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                var g = audioCtx.createGain();
+                g.gain.setValueAtTime(0, now + i * 0.06);
+                g.gain.linearRampToValueAtTime(0.05, now + i * 0.06 + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.2);
+                osc.connect(g);
+                g.connect(audioCtx.destination);
+                osc.start(now + i * 0.06);
+                osc.stop(now + i * 0.06 + 0.25);
+            });
+        }
+
+        function vibrate(pattern) {
+            if (pattern === undefined) pattern = 12;
+            if ('vibrate' in navigator) {
+                try { navigator.vibrate(pattern); } catch (e) {}
+            }
+        }
+
+        // ================================================================
+        //  ONGLETS FIXES
+        // ================================================================
+        var pwaList = [
+            {
+                id: 'pwa-1', name: 'Master', url: 'https://mekeirish.github.io/Bmastercode/',
+                color: '#a78bfa', colorDim: 'rgba(167, 139, 250, 0.5)',
+                colorBg: 'rgba(167, 139, 250, 0.14)', colorBgSoft: 'rgba(167, 139, 250, 0.06)'
+            },
+            {
+                id: 'pwa-2', name: 'Sniper', url: 'https://mekeirish.github.io/Bsnipercode/',
+                color: '#22d3ee', colorDim: 'rgba(34, 211, 238, 0.5)',
+                colorBg: 'rgba(34, 211, 238, 0.14)', colorBgSoft: 'rgba(34, 211, 238, 0.06)'
+            },
+            {
+                id: 'pwa-3', name: 'Lab', url: 'https://mekeirish.github.io/Blabcode/',
+                color: '#fb923c', colorDim: 'rgba(251, 146, 60, 0.5)',
+                colorBg: 'rgba(251, 146, 60, 0.14)', colorBgSoft: 'rgba(251, 146, 60, 0.06)'
+            },
+            {
+                id: 'pwa-4', name: 'Hub', url: 'https://mekeirish.github.io/Bhubcode/',
+                color: '#4ade80', colorDim: 'rgba(74, 222, 128, 0.5)',
+                colorBg: 'rgba(74, 222, 128, 0.14)', colorBgSoft: 'rgba(74, 222, 128, 0.06)'
+            },
+            {
+                id: 'pwa-5', name: 'APKor', url: 'https://mekeirish.github.io/Bapkor/',
+                color: '#facc15', colorDim: 'rgba(250, 204, 21, 0.5)',
+                colorBg: 'rgba(250, 204, 21, 0.14)', colorBgSoft: 'rgba(250, 204, 21, 0.06)'
+            }
+        ];
+
+        // ================================================================
+        //  ÉTAT
+        // ================================================================
+        var ACTIVE_KEY = 'activePwa_pc_v10';
+        var GS_STORAGE = 'gs_data_v1';
+
+        var activePwaId = null;
+        var loadedPwas = {};
+
+        function saveActive() {
+            if (activePwaId) localStorage.setItem(ACTIVE_KEY, activePwaId);
+            else localStorage.removeItem(ACTIVE_KEY);
+        }
+
+        // ================================================================
+        //  ACCÈS — stockage local (noms neutres)
+        // ================================================================
+        function getAccess() {
+            return localStorage.getItem(GS_STORAGE) || null;
+        }
+
+        function setAccess(val) {
+            if (val) localStorage.setItem(GS_STORAGE, val);
+            else localStorage.removeItem(GS_STORAGE);
+        }
+
+        function updateAccessBtn() {
+            var btn = document.getElementById('gh-key-btn');
+            var hint = document.getElementById('gh-key-hint');
+            var v = getAccess();
+
+            if (v) {
+                btn.classList.add('configured');
+                hint.textContent = '✓ ' + maskVal(v) + ' · Clic pour copier';
+            } else {
+                btn.classList.remove('configured');
+                hint.textContent = 'Non configuré · Appui long';
+            }
+        }
+
+        function maskVal(v) {
+            if (!v) return '';
+            if (v.length <= 12) return '••••••';
+            return v.slice(0, 4) + '••••' + v.slice(-4);
+        }
+
+        var ghBtn = document.getElementById('gh-key-btn');
+        var ghFeedback = document.getElementById('gh-copy-feedback');
+        var ghPressTimer = null;
+        var ghPressStart = 0;
+        var ghLongPressTriggered = false;
+
+        function ghStartPress(e) {
+            e.preventDefault();
+            ghPressStart = Date.now();
+            ghLongPressTriggered = false;
+            ghPressTimer = setTimeout(function() {
+                ghLongPressTriggered = true;
+                ghPressTimer = null;
+                vibrate(25);
+                playClickSound();
+                openGhModal();
+            }, 500);
+        }
+
+        function ghEndPress(e) {
+            if (ghPressTimer !== null) {
+                clearTimeout(ghPressTimer);
+                ghPressTimer = null;
+            }
+            if (!ghLongPressTriggered && Date.now() - ghPressStart < 500) {
+                ghCopyVal();
+            }
+            ghLongPressTriggered = false;
+        }
+
+        function ghCancelPress() {
+            if (ghPressTimer !== null) {
+                clearTimeout(ghPressTimer);
+                ghPressTimer = null;
+            }
+            ghLongPressTriggered = false;
+        }
+
+        ghBtn.addEventListener('pointerdown', ghStartPress);
+        ghBtn.addEventListener('pointerup', ghEndPress);
+        ghBtn.addEventListener('pointerleave', ghCancelPress);
+        ghBtn.addEventListener('pointercancel', ghCancelPress);
+
+        function ghCopyVal() {
+            var v = getAccess();
+            if (!v) {
+                vibrate([15, 50, 15]);
+                ghBtn.style.animation = 'none';
+                setTimeout(function() { ghBtn.style.animation = 'ghShake 0.4s'; }, 10);
+                setTimeout(function() { ghBtn.style.animation = ''; }, 450);
+                return;
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(v).then(function() {
+                    vibrate(15);
+                    playClickSound();
+                    showGhFeedback('✓ Accès copié');
+                }).catch(function() {
+                    legacyCopy(v);
+                });
+            } else {
+                legacyCopy(v);
+            }
+        }
+
+        function legacyCopy(v) {
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = v;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                vibrate(15);
+                playClickSound();
+                showGhFeedback('✓ Accès copié');
+            } catch (e) {
+                showGhFeedback('✗ Échec copie', true);
+            }
+        }
+
+        function showGhFeedback(text, isError) {
+            ghFeedback.textContent = text;
+            if (isError) {
+                ghFeedback.style.background = 'rgba(255, 100, 100, 0.15)';
+                ghFeedback.style.borderColor = 'rgba(255, 100, 100, 0.4)';
+                ghFeedback.style.color = '#ff8a8a';
+            } else {
+                ghFeedback.style.background = 'rgba(74, 222, 128, 0.15)';
+                ghFeedback.style.borderColor = 'rgba(74, 222, 128, 0.4)';
+                ghFeedback.style.color = '#86efac';
+            }
+            ghFeedback.classList.add('show');
+            clearTimeout(ghFeedback._t);
+            ghFeedback._t = setTimeout(function() {
+                ghFeedback.classList.remove('show');
+            }, 1800);
+        }
+
+        var shakeStyle = document.createElement('style');
+        shakeStyle.textContent = '@keyframes ghShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}';
+        document.head.appendChild(shakeStyle);
+
+        var ghModal = document.getElementById('gh-modal');
+        var ghInput = document.getElementById('gh-key-input');
+        var ghBtnSave = document.getElementById('gh-btn-save');
+        var ghBtnDelete = document.getElementById('gh-btn-delete');
+        var ghBtnCancel = document.getElementById('gh-btn-cancel');
+        var ghModalClose = document.getElementById('gh-modal-close');
+        var ghInputToggle = document.getElementById('gh-input-toggle');
+        var ghEyeIcon = document.getElementById('gh-eye-icon');
+
+        function openGhModal() {
+            ghModal.classList.add('open');
+            var v = getAccess();
+            ghInput.value = v || '';
+            ghInput.type = 'password';
+            updateEyeIcon();
+            updateSaveButton();
+            setTimeout(function() {
+                if (!v) ghInput.focus();
+            }, 100);
+        }
+
+        function closeGhModal() {
+            ghModal.classList.remove('open');
+            ghInput.value = '';
+        }
+
+        function updateEyeIcon() {
+            if (ghInput.type === 'password') {
+                ghEyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+            } else {
+                ghEyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+            }
+        }
+
+        function updateSaveButton() {
+            var v = ghInput.value.trim();
+            var current = getAccess() || '';
+            ghBtnSave.disabled = (v === current) && current !== '' && v !== '';
+            if (v === '' && !current) ghBtnSave.disabled = true;
+        }
+
+        ghInput.addEventListener('input', updateSaveButton);
+        ghInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !ghBtnSave.disabled) ghBtnSave.click();
+            if (e.key === 'Escape') closeGhModal();
+        });
+
+        ghInputToggle.addEventListener('click', function() {
+            ghInput.type = ghInput.type === 'password' ? 'text' : 'password';
+            updateEyeIcon();
+            ghInput.focus();
+        });
+
+        ghBtnSave.addEventListener('click', function() {
+            var v = ghInput.value.trim();
+            if (!v) return;
+            setAccess(v);
+            updateAccessBtn();
+            vibrate(20);
+            playSuccessSound();
+            showGhFeedback('✓ Enregistré');
+            closeGhModal();
+        });
+
+        ghBtnDelete.addEventListener('click', function() {
+            if (!getAccess()) { closeGhModal(); return; }
+            if (confirm('Supprimer l\'accès enregistré ?')) {
+                setAccess(null);
+                updateAccessBtn();
+                vibrate([15, 40, 15]);
+                playCloseSound();
+                showGhFeedback('Supprimé');
+                closeGhModal();
+            }
+        });
+
+        ghBtnCancel.addEventListener('click', function() {
+            playClickSound();
+            closeGhModal();
+        });
+
+        ghModalClose.addEventListener('click', function() {
+            playClickSound();
+            closeGhModal();
+        });
+
+        ghModal.addEventListener('click', function(e) {
+            if (e.target === ghModal) {
+                playClickSound();
+                closeGhModal();
+            }
+        });
+
+        // ================================================================
+        //  CONSTRUCTION DES ONGLETS
+        // ================================================================
+        function buildTabs() {
+            var tabs = document.getElementById('tabs-container');
+            tabs.innerHTML = '';
+
+            pwaList.forEach(function(pwa) {
+                var socket = document.createElement('div');
+                socket.className = 'btn-socket';
+                socket.id = 'btn-' + pwa.id;
+                socket.dataset.id = pwa.id;
+
+                var led = document.createElement('div');
+                led.className = 'led';
+                socket.appendChild(led);
+
+                var btn = document.createElement('button');
+                btn.className = 'pwa-btn';
+                btn.textContent = pwa.name;
+                socket.appendChild(btn);
+
+                socket.addEventListener('mouseenter', function() {
+                    if (socket.classList.contains('active')) return;
+                    socket.style.borderColor = pwa.colorDim;
+                    socket.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3), 0 0 12px ' + pwa.colorBgSoft;
+                });
+                socket.addEventListener('mouseleave', function() {
+                    if (socket.classList.contains('active')) return;
+                    socket.style.borderColor = '';
+                    socket.style.boxShadow = '';
+                });
+
+                socket.addEventListener('click', function() {
+                    socket.classList.add('tapping');
+                    setTimeout(function() { socket.classList.remove('tapping'); }, 260);
+
+                    var isClosing = activePwaId === pwa.id;
+                    if (isClosing) {
+                        vibrate([8, 30, 8]);
+                        playCloseSound();
+                    } else {
+                        vibrate(15);
+                        playOpenSound();
+                    }
+                    togglePwa(pwa.id);
+                });
+
+                tabs.appendChild(socket);
+            });
+        }
+
+        // ================================================================
+        //  CRÉATION D'UNE CARTE
+        // ================================================================
+        function createCard(pwa) {
+            var container = document.getElementById('cards-container');
+            var card = document.createElement('div');
+            card.className = 'pwa-single hidden-card';
+            card.id = 'card-' + pwa.id;
+            card.style.borderColor = pwa.colorDim;
+
+            var header = document.createElement('div');
+            header.className = 'pwa-card-header';
+            header.innerHTML = '<span class="pwa-card-title" style="color:' + pwa.color + ';">' +
+                '<span class="dot" style="background:' + pwa.color + '; box-shadow:0 0 10px ' + pwa.color + ';"></span>' +
+                pwa.name +
+                '<span class="pwa-card-url">' + pwa.url + '</span>' +
+                '</span>' +
+                '<button class="pwa-card-reload" title="Recharger">⟳</button>';
+            header.querySelector('.pwa-card-reload').addEventListener('click', function(e) {
+                e.stopPropagation();
+                vibrate(10);
+                playClickSound();
+                var iframe = card.querySelector('iframe');
+                if (iframe) {
+                    var loader = card.querySelector('.pwa-loader');
+                    if (loader) loader.classList.remove('hidden');
+                    iframe.src = iframe.src;
+                }
+            });
+
+            var body = document.createElement('div');
+            body.className = 'pwa-card-body';
+
+            var loader = document.createElement('div');
+            loader.className = 'pwa-loader';
+            loader.style.color = pwa.color;
+            loader.innerHTML = '<div class="spinner" style="border-color:' + pwa.colorBg + '; border-top-color:' + pwa.color + ';"></div><div>Chargement…</div>';
+            body.appendChild(loader);
+
+            var iframe = document.createElement('iframe');
+            iframe.id = 'iframe-' + pwa.id;
+            iframe.src = pwa.url;
+            iframe.setAttribute('scrolling', 'auto');
+            iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups');
+            iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+
+            var loaded = false;
+            iframe.addEventListener('load', function() {
+                loaded = true;
+                loader.classList.add('hidden');
+            });
+
+            setTimeout(function() {
+                if (!loaded) showError(body, pwa);
+            }, 12000);
+
+            iframe.addEventListener('error', function() {
+                showError(body, pwa);
+            });
+
+            body.appendChild(iframe);
+            card.appendChild(header);
+            card.appendChild(body);
+            container.appendChild(card);
+        }
+
+        function showError(container, pwa) {
+            if (container.querySelector('.pwa-error')) return;
+            var loader = container.querySelector('.pwa-loader');
+            if (loader) loader.classList.add('hidden');
+            var iframe = container.querySelector('iframe');
+            if (iframe) iframe.style.visibility = 'hidden';
+
+            var err = document.createElement('div');
+            err.className = 'pwa-error';
+            err.innerHTML = '<div class="err-icon">⚠️</div>' +
+                '<div class="err-title">Page introuvable</div>' +
+                '<div class="err-msg">Cette URL ne répond pas. Vérifie que le dépôt existe et contient un <b>index.html</b>.</div>' +
+                '<div class="err-url">' + pwa.url + '</div>' +
+                '<button class="err-btn" style="background:' + pwa.colorBg + '; border-color:' + pwa.colorDim + '; color:' + pwa.color + ';">Réessayer</button>';
+            err.querySelector('.err-btn').addEventListener('click', function() {
+                err.remove();
+                if (iframe) {
+                    iframe.style.visibility = 'visible';
+                    iframe.src = iframe.src;
+                }
+                if (loader) loader.classList.remove('hidden');
+            });
+            container.appendChild(err);
+        }
+
+        // ================================================================
+        //  VISIBILITÉ
+        // ================================================================
+        function updateVisibility() {
+            var welcome = document.getElementById('welcome');
+
+            pwaList.forEach(function(pwa) {
+                var card = document.getElementById('card-' + pwa.id);
+                if (!card) return;
+                if (pwa.id === activePwaId) {
+                    card.classList.add('visible');
+                    card.classList.remove('hidden-card');
+                } else {
+                    card.classList.remove('visible');
+                    card.classList.add('hidden-card');
+                }
+            });
+
+            if (activePwaId) {
+                welcome.classList.remove('visible');
+            } else {
+                welcome.classList.add('visible');
+            }
+
+            pwaList.forEach(function(pwa) {
+                var socket = document.getElementById('btn-' + pwa.id);
+                if (!socket) return;
+                var isActive = pwa.id === activePwaId;
+                var led = socket.querySelector('.led');
+                var btn = socket.querySelector('.pwa-btn');
+
+                if (isActive) {
+                    socket.classList.add('active');
+                    socket.style.background = pwa.colorBg;
+                    socket.style.borderColor = pwa.colorDim;
+                    socket.style.boxShadow = '0 0 24px ' + pwa.colorBgSoft + ', inset 0 0 24px ' + pwa.colorBgSoft;
+                    led.style.background = pwa.color;
+                    led.style.boxShadow = '0 0 14px ' + pwa.color;
+                    btn.style.color = pwa.color;
+                } else {
+                    socket.classList.remove('active');
+                    socket.style.background = '';
+                    socket.style.borderColor = '';
+                    socket.style.boxShadow = '';
+                    led.style.background = '#3c465a';
+                    led.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.6)';
+                    btn.style.color = '#94a0b8';
+                }
+            });
+        }
+
+        // ================================================================
+        //  TOGGLE PWA
+        // ================================================================
+        function togglePwa(id) {
+            if (activePwaId === id) {
+                activePwaId = null;
+            } else {
+                if (!loadedPwas[id]) {
+                    var pwa = pwaList.find(function(p) { return p.id === id; });
+                    if (pwa) {
+                        createCard(pwa);
+                        loadedPwas[id] = true;
+                    }
+                }
+                activePwaId = id;
+            }
+            saveActive();
+            updateVisibility();
+        }
+
+        // ================================================================
+        //  POSTMESSAGE
+        // ================================================================
+        window.addEventListener('message', function(event) {
+            var msg = event.data;
+            if (msg && msg.type === 'HUB_ROUTER' && msg.target) {
+                var iframe = document.getElementById('iframe-' + msg.target);
+                if (iframe) iframe.contentWindow.postMessage(msg.payload, '*');
+            }
+        });
+
+        // ================================================================
+        //  SERVICE WORKER CLEANUP
+        // ================================================================
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+                regs.forEach(function(r) { r.unregister(); });
+            });
+        }
+
+        // ================================================================
+        //  INIT
+        // ================================================================
+        activePwaId = null;
+        buildTabs();
+        updateVisibility();
+        updateAccessBtn();
+    </script>
+
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));}</script>
+</body>
+</html>
