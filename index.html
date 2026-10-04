@@ -146,7 +146,7 @@
             visibility: visible;
         }
 
-        /* ===== VUE LOGO PLEIN ÉCRAN (au lancement) ===== */
+        /* ===== VUE INTRO (logo seul) ===== */
         .home-intro {
             position: absolute;
             inset: 0;
@@ -220,7 +220,6 @@
             filter: drop-shadow(0 0 40px rgba(167, 139, 250, 0.35));
         }
 
-        /* Effet "pulse" pendant le long press */
         .intro-logo-wrap.pressing .intro-logo-svg {
             animation: pressPulse 0.6s ease-in-out infinite;
         }
@@ -229,7 +228,6 @@
             50% { transform: scale(1.04); }
         }
 
-        /* Indicateur visuel du long press */
         .press-ring {
             position: absolute;
             top: 50%;
@@ -295,7 +293,7 @@
             font-weight: 700;
         }
 
-        /* ===== VUE LA BASE (apparaît après long press) ===== */
+        /* ===== VUE LA BASE ===== */
         .base-view {
             position: absolute;
             inset: 0;
@@ -314,7 +312,6 @@
             transform: translateY(0);
         }
 
-        /* En-tête */
         .base-header {
             display: flex;
             align-items: center;
@@ -430,7 +427,6 @@
             stroke-linejoin: round;
         }
 
-        /* Barre de recherche */
         .base-search-wrap {
             padding: 10px 20px;
             flex-shrink: 0;
@@ -497,7 +493,6 @@
         .base-search-clear:hover { color: #fff; }
         .base-search-clear.show { display: flex; }
 
-        /* Zone de la liste */
         .base-list-wrap {
             flex: 1;
             overflow-y: auto;
@@ -508,7 +503,6 @@
         .base-list-wrap::-webkit-scrollbar { width: 6px; }
         .base-list-wrap::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 99px; }
 
-        /* ⬇ Grille de snippets compacte */
         .snippets-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -538,7 +532,6 @@
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        /* Barre colorée à gauche */
         .snip-card::before {
             content: '';
             position: absolute;
@@ -589,7 +582,6 @@
             }
         }
 
-        /* Icône */
         .snip-icon {
             width: 32px;
             height: 32px;
@@ -615,7 +607,6 @@
             stroke-linejoin: round;
         }
 
-        /* Textes */
         .snip-text {
             flex: 1;
             min-width: 0;
@@ -644,7 +635,6 @@
             line-height: 1.2;
         }
 
-        /* Actions à droite */
         .snip-actions {
             display: flex;
             gap: 3px;
@@ -682,7 +672,6 @@
             color: #ff8a8a;
         }
 
-        /* ===== ÉTAT VIDE ===== */
         .base-empty {
             display: flex;
             flex-direction: column;
@@ -864,7 +853,6 @@
             line-height: 1.5;
         }
 
-        /* ===== COLOR PICKER ===== */
         .picker-wrap {
             display: flex;
             flex-direction: column;
@@ -911,7 +899,6 @@
             background: rgba(0, 0, 0, 0.4);
         }
 
-        /* ===== ICON PICKER ===== */
         .icon-picker {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -1368,7 +1355,6 @@
 
             <!-- Vue La Base -->
             <div class="base-view" id="base-view">
-                <!-- En-tête -->
                 <div class="base-header">
                     <div class="base-header-logo" id="base-header-logo" title="Retour au logo">
                         <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
@@ -1399,7 +1385,6 @@
                     </div>
                 </div>
 
-                <!-- Recherche -->
                 <div class="base-search-wrap">
                     <div class="base-search">
                         <div class="base-search-icon">
@@ -1410,14 +1395,12 @@
                     </div>
                 </div>
 
-                <!-- Liste -->
                 <div class="base-list-wrap">
                     <div class="snippets-grid" id="snippets-grid"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Cartes PWA -->
         <div class="cards-container" id="cards-container"></div>
     </main>
 
@@ -1584,7 +1567,7 @@
         var DEFAULT_COLOR = '#a78bfa';
 
         // ================================================================
-        //  BIBLIOTHÈQUE D'ICÔNES (unicolores, style ligne)
+        //  BIBLIOTHÈQUE D'ICÔNES
         // ================================================================
         var ICON_LIBRARY = [
             { id: 'file',     svg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>' },
@@ -1613,7 +1596,6 @@
                     return '<svg viewBox="0 0 24 24">' + ICON_LIBRARY[i].svg + '</svg>';
                 }
             }
-            // fallback
             return '<svg viewBox="0 0 24 24">' + ICON_LIBRARY[0].svg + '</svg>';
         }
 
@@ -1658,12 +1640,10 @@
         // ================================================================
         var ACTIVE_KEY = 'activePwa_pc_v15';
         var BASE_STORAGE = 'laBase_v4';
-        var UNLOCKED_KEY = 'baseUnlocked_v1';
 
         var activePwaId = null;
         var loadedPwas = {};
         var currentSearch = '';
-        var isBaseUnlocked = false;
 
         function saveActive() {
             if (activePwaId) localStorage.setItem(ACTIVE_KEY, activePwaId);
@@ -1706,7 +1686,7 @@
         }
 
         // ================================================================
-        //  LONG PRESS SUR LE LOGO → AFFICHE LA BASE
+        //  LONG PRESS SUR LE LOGO
         // ================================================================
         var introLogo = document.getElementById('intro-logo-wrap');
         var pressTimer = null;
@@ -1736,9 +1716,7 @@
                 pressTimer = null;
             }
             introLogo.classList.remove('pressing');
-            // Si appui court et pas de long press → feedback visuel
             if (!longPressTriggered && Date.now() - pressStart < 600) {
-                // Petit rappel : petit pulse pour dire "appuie plus longtemps"
                 vibrate(8);
             }
             longPressTriggered = false;
@@ -1759,14 +1737,12 @@
         introLogo.addEventListener('pointercancel', cancelLogoPress);
 
         function unlockBase() {
-            isBaseUnlocked = true;
             document.getElementById('home-intro').classList.add('hidden');
             document.getElementById('base-view').classList.add('visible');
             renderSnippets();
         }
 
         function lockBase() {
-            isBaseUnlocked = false;
             document.getElementById('base-view').classList.remove('visible');
             document.getElementById('home-intro').classList.remove('hidden');
         }
@@ -2115,9 +2091,6 @@
             showToast('Supprimé');
         }
 
-        // ================================================================
-        //  RETOUR AU LOGO (clic sur le logo de l'en-tête)
-        // ================================================================
         document.getElementById('base-header-logo').addEventListener('click', function() {
             playClickSound();
             vibrate(12);
@@ -2145,6 +2118,81 @@
         });
 
         // ================================================================
+        //  HELPERS EXPORT
+        // ================================================================
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+            }
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                return Promise.resolve();
+            } catch (e) {
+                return Promise.reject(e);
+            }
+        }
+
+        function downloadFile(filename, content) {
+            // ===== MÉTHODE 1 : Blob + createObjectURL =====
+            try {
+                var blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                a.rel = 'noopener';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function() {
+                    if (a.parentNode) document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 500);
+                return true;
+            } catch (e1) {
+                console.warn('Blob échoué:', e1);
+            }
+
+            // ===== MÉTHODE 2 : data: URI =====
+            try {
+                var dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
+                var a2 = document.createElement('a');
+                a2.href = dataUri;
+                a2.download = filename;
+                a2.style.display = 'none';
+                a2.rel = 'noopener';
+                document.body.appendChild(a2);
+                a2.click();
+                setTimeout(function() {
+                    if (a2.parentNode) document.body.removeChild(a2);
+                }, 500);
+                return true;
+            } catch (e2) {
+                console.warn('data URI échoué:', e2);
+            }
+
+            // ===== MÉTHODE 3 : msSaveBlob =====
+            try {
+                if (window.navigator && window.navigator.msSaveBlob) {
+                    var blob3 = new Blob([content], { type: 'application/json' });
+                    window.navigator.msSaveBlob(blob3, filename);
+                    return true;
+                }
+            } catch (e3) {
+                console.warn('msSaveBlob échoué:', e3);
+            }
+
+            return false;
+        }
+
+        // ================================================================
         //  EXPORT / IMPORT
         // ================================================================
         var fileInput = document.getElementById('file-input');
@@ -2163,20 +2211,24 @@
                 snippets: list
             };
 
-            var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            var date = new Date().toISOString().slice(0, 10);
-            a.href = url;
-            a.download = 'la-base-' + date + '.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+            var jsonStr = JSON.stringify(data, null, 2);
+            var filename = 'la-base-' + new Date().toISOString().slice(0, 10) + '.json';
+
+            var success = downloadFile(filename, jsonStr);
 
             vibrate(15);
             playSuccessSound();
-            showToast(list.length + ' exporté(s)');
+
+            if (success) {
+                showToast(list.length + ' snippet(s) exporté(s)');
+            } else {
+                // Dernier recours : copier dans le presse-papier
+                copyToClipboard(jsonStr).then(function() {
+                    showToast('JSON copié dans le presse-papier');
+                }).catch(function() {
+                    showToast('Échec de l\'export', true);
+                });
+            }
         });
 
         document.getElementById('btn-import').addEventListener('click', function() {
@@ -2487,8 +2539,6 @@
         buildTabs();
         renderSnippets();
         updateVisibility();
-        // Au lancement : écran d'accueil = intro (logo seul)
-        // La base est "déverrouillée" seulement au long press
     </script>
 </body>
 </html>
