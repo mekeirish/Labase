@@ -362,6 +362,7 @@
             transform: translateX(-50%) translateY(0);
         }
 
+        /* ===== MODAL KEY ===== */
         .gh-modal {
             position: fixed;
             inset: 0;
@@ -374,6 +375,8 @@
             z-index: 1000;
             padding: 20px;
             animation: modalFadeIn 0.25s ease;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         @keyframes modalFadeIn {
             0% { opacity: 0; }
@@ -394,6 +397,9 @@
                 0 40px 100px rgba(0, 0, 0, 0.85),
                 inset 0 1px 0 rgba(255, 255, 255, 0.04);
             animation: modalSlideIn 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            margin: auto;
         }
         @keyframes modalSlideIn {
             0% { opacity: 0; transform: translateY(16px) scale(0.96); }
@@ -427,6 +433,7 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
+            min-width: 0;
         }
         .gh-modal-title {
             font-size: 16px;
@@ -492,6 +499,7 @@
             font-family: 'Courier New', monospace;
             letter-spacing: 0.5px;
             width: 100%;
+            min-width: 0;
         }
         .gh-input-wrap input::placeholder {
             color: #4a5064;
@@ -507,6 +515,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
         .gh-input-toggle:hover { color: #b8b0dc; }
         .gh-input-toggle svg {
@@ -561,6 +570,7 @@
             letter-spacing: 0.5px;
             border: 1px solid;
             font-family: inherit;
+            white-space: nowrap;
         }
         .gh-btn-delete {
             background: rgba(60, 20, 20, 0.4);
@@ -821,6 +831,7 @@
         }
         .pwa-error .err-btn:hover { filter: brightness(1.3); }
 
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 900px) {
             .workspace { padding: 8px; }
             .nav-bar { padding: 8px; gap: 4px; }
@@ -831,11 +842,113 @@
             .welcome-signature { font-size: 10px; letter-spacing: 3px; }
             .welcome-signature::before,
             .welcome-signature::after { width: 20px; margin: 0 8px; }
-            .gh-key-btn { padding: 12px 18px 12px 14px; gap: 10px; }
-            .gh-icon-wrap { width: 36px; height: 36px; }
-            .gh-icon-wrap svg { width: 20px; height: 20px; }
-            .gh-key-label { font-size: 12px; }
-            .gh-key-hint { font-size: 9px; }
+        }
+
+        /* ===== MODAL MOBILE — corrections principales ===== */
+        @media (max-width: 640px) {
+            .gh-modal {
+                padding: 0;
+                align-items: flex-end;
+            }
+
+            .gh-modal-content {
+                max-width: 100%;
+                width: 100%;
+                border-radius: 20px 20px 0 0;
+                padding: 22px 18px calc(22px + env(safe-area-inset-bottom, 0px));
+                max-height: 92vh;
+                margin: 0;
+                animation: modalSlideUp 0.32s cubic-bezier(0.2, 0.9, 0.4, 1);
+            }
+            @keyframes modalSlideUp {
+                0% { opacity: 0; transform: translateY(100%); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
+
+            .gh-modal-header {
+                margin-bottom: 14px;
+                gap: 10px;
+            }
+            .gh-modal-icon {
+                width: 38px;
+                height: 38px;
+                border-radius: 10px;
+            }
+            .gh-modal-icon svg { width: 20px; height: 20px; }
+            .gh-modal-title { font-size: 15px; }
+            .gh-modal-sub { font-size: 10px; }
+            .gh-modal-close {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .gh-modal-body {
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .gh-input-wrap input {
+                padding: 14px 14px;
+                font-size: 14px;
+            }
+            .gh-input-toggle {
+                padding: 10px 14px;
+            }
+            .gh-input-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .gh-help {
+                font-size: 11px;
+                padding: 10px 12px;
+            }
+
+            /* ⬇ BOUTONS EMPILÉS VERTICALEMENT SUR MOBILE */
+            .gh-modal-actions {
+                flex-direction: column;
+                gap: 8px;
+                justify-content: stretch;
+            }
+            .gh-modal-actions button {
+                width: 100%;
+                padding: 15px 18px;
+                font-size: 13px;
+                letter-spacing: 0.6px;
+                min-height: 52px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Le bouton principal "Enregistrer" bien mis en avant */
+            .gh-btn-save {
+                background: linear-gradient(135deg, rgba(139, 128, 200, 0.45), rgba(139, 128, 200, 0.28));
+                border-color: rgba(139, 128, 200, 0.5);
+                box-shadow: 0 4px 14px rgba(139, 128, 200, 0.15);
+            }
+
+            /* Le bouton supprimer plus discret, en haut de pile */
+            .gh-btn-delete {
+                padding: 12px 18px;
+                font-size: 12px;
+                min-height: 46px;
+                order: -1; /* place le bouton Supprimer en haut */
+            }
+        }
+
+        /* Très petits écrans */
+        @media (max-width: 380px) {
+            .gh-modal-content {
+                padding: 18px 14px calc(18px + env(safe-area-inset-bottom, 0px));
+            }
+            .gh-modal-title { font-size: 14px; }
+            .gh-modal-actions button {
+                padding: 14px 14px;
+                font-size: 12px;
+            }
         }
     </style>
 
@@ -886,7 +999,6 @@
                 </svg>
             </div>
 
-            <!-- BOUTON ACCÈS -->
             <div class="gh-key-btn" id="gh-key-btn" oncontextmenu="event.preventDefault()">
                 <div class="gh-copy-feedback" id="gh-copy-feedback">✓ Accès copié</div>
                 <div class="gh-icon-wrap">
@@ -907,7 +1019,6 @@
         <div class="cards-container" id="cards-container"></div>
     </main>
 
-    <!-- MODAL ACCÈS -->
     <div class="gh-modal" id="gh-modal">
         <div class="gh-modal-content">
             <div class="gh-modal-header">
@@ -952,9 +1063,6 @@
     </div>
 
     <script>
-        // ================================================================
-        //  AUDIO + VIBRATION
-        // ================================================================
         var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function createWhiteNoiseBuffer(duration) {
@@ -1054,9 +1162,6 @@
             }
         }
 
-        // ================================================================
-        //  ONGLETS FIXES (6 onglets)
-        // ================================================================
         var pwaList = [
             {
                 id: 'pwa-1', name: 'Master', url: 'https://mekeirish.github.io/Bmastercode/',
@@ -1090,9 +1195,6 @@
             }
         ];
 
-        // ================================================================
-        //  ÉTAT
-        // ================================================================
         var ACTIVE_KEY = 'activePwa_pc_v11';
         var GS_STORAGE = 'gs_data_v1';
 
@@ -1104,9 +1206,6 @@
             else localStorage.removeItem(ACTIVE_KEY);
         }
 
-        // ================================================================
-        //  ACCÈS — stockage local
-        // ================================================================
         function getAccess() {
             return localStorage.getItem(GS_STORAGE) || null;
         }
@@ -1258,7 +1357,7 @@
             updateEyeIcon();
             updateSaveButton();
             setTimeout(function() {
-                if (!v) ghInput.focus();
+                if (!v && window.innerWidth > 640) ghInput.focus();
             }, 100);
         }
 
@@ -1334,9 +1433,6 @@
             }
         });
 
-        // ================================================================
-        //  CONSTRUCTION DES ONGLETS
-        // ================================================================
         function buildTabs() {
             var tabs = document.getElementById('tabs-container');
             tabs.innerHTML = '';
@@ -1386,9 +1482,6 @@
             });
         }
 
-        // ================================================================
-        //  CRÉATION D'UNE CARTE
-        // ================================================================
         function createCard(pwa) {
             var container = document.getElementById('cards-container');
             var card = document.createElement('div');
@@ -1477,9 +1570,6 @@
             container.appendChild(err);
         }
 
-        // ================================================================
-        //  VISIBILITÉ
-        // ================================================================
         function updateVisibility() {
             var welcome = document.getElementById('welcome');
 
@@ -1528,9 +1618,6 @@
             });
         }
 
-        // ================================================================
-        //  TOGGLE PWA
-        // ================================================================
         function togglePwa(id) {
             if (activePwaId === id) {
                 activePwaId = null;
@@ -1548,9 +1635,6 @@
             updateVisibility();
         }
 
-        // ================================================================
-        //  POSTMESSAGE
-        // ================================================================
         window.addEventListener('message', function(event) {
             var msg = event.data;
             if (msg && msg.type === 'HUB_ROUTER' && msg.target) {
@@ -1559,18 +1643,12 @@
             }
         });
 
-        // ================================================================
-        //  SERVICE WORKER CLEANUP
-        // ================================================================
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
                 regs.forEach(function(r) { r.unregister(); });
             });
         }
 
-        // ================================================================
-        //  INIT
-        // ================================================================
         activePwaId = null;
         buildTabs();
         updateVisibility();
