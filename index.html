@@ -17,6 +17,7 @@
             display: flex;
             flex-direction: column;
             user-select: none;
+            -webkit-user-select: none;
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -37,6 +38,8 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
             flex-shrink: 0;
             flex-wrap: nowrap;
+            position: relative;
+            z-index: 100;
         }
 
         #tabs-container { display: flex; gap: 8px; flex: 1; min-width: 0; }
@@ -140,10 +143,17 @@
             transition: opacity 0.35s ease, visibility 0.35s ease;
             z-index: 5;
             overflow: hidden;
+            pointer-events: none;
         }
         .home-screen.visible {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
+        }
+        /* BLOCAGE TOTAL quand pas visible */
+        .home-screen:not(.visible),
+        .home-screen:not(.visible) * {
+            pointer-events: none !important;
         }
 
         /* ===== VUE INTRO (logo seul) ===== */
@@ -157,12 +167,16 @@
             gap: 32px;
             z-index: 20;
             transition: opacity 0.45s cubic-bezier(0.2, 0.9, 0.4, 1), transform 0.45s cubic-bezier(0.2, 0.9, 0.4, 1);
+            pointer-events: none;
+        }
+        .home-intro:not(.hidden) {
             pointer-events: auto;
         }
         .home-intro.hidden {
             opacity: 0;
             transform: scale(0.95);
             pointer-events: none;
+            visibility: hidden;
         }
 
         .intro-logo-wrap {
@@ -170,7 +184,7 @@
             display: inline-block;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
+            touch-action: none;  /* ⬅ contrôle total des gestes */
             animation: floatLogo 6s ease-in-out infinite;
         }
         @keyframes floatLogo {
@@ -201,6 +215,7 @@
             height: auto;
             filter: drop-shadow(0 0 30px rgba(139, 128, 200, 0.15));
             transition: filter 0.3s, transform 0.3s;
+            pointer-events: none;
         }
         .intro-logo-svg .bracket-left { stroke: url(#gradLeft3); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; fill: none; }
         .intro-logo-svg .bracket-right { stroke: url(#gradRight3); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; fill: none; }
@@ -305,11 +320,13 @@
             transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1), visibility 0.4s;
             overflow: hidden;
             z-index: 10;
+            pointer-events: none;
         }
         .base-view.visible {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
+            pointer-events: auto;
         }
 
         .base-header {
@@ -510,7 +527,7 @@
             align-content: start;
         }
 
-        /* ===== CARTE SNIPPET COMPACTE ===== */
+        /* ===== CARTE SNIPPET ===== */
         .snip-card {
             position: relative;
             display: flex;
@@ -1001,7 +1018,7 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
             z-index: 2000;
             opacity: 0;
-            pointer-events: none;
+            pointer-events: none !important;
             transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
             white-space: nowrap;
             max-width: 90vw;
@@ -1024,6 +1041,7 @@
             min-height: 0;
             z-index: 1;
             padding: 12px 16px;
+            pointer-events: auto;
         }
 
         .pwa-single {
@@ -1309,7 +1327,6 @@
 
     <main class="workspace">
 
-        <!-- ===== ÉCRAN D'ACCUEIL ===== -->
         <div class="home-screen visible" id="home-screen">
 
             <!-- Vue intro : logo seul -->
@@ -1404,7 +1421,6 @@
         <div class="cards-container" id="cards-container"></div>
     </main>
 
-    <!-- ===== FORMULAIRE ===== -->
     <div class="form-overlay" id="form-overlay">
         <div class="form-content">
             <div class="form-header">
@@ -1552,6 +1568,19 @@
         }
 
         // ================================================================
+        //  🔒 GHOST CLICK BLOCKER — empêche les clics fantômes
+        // ================================================================
+        var suppressClicksUntil = 0;
+
+        function isClickSuppressed() {
+            return Date.now() < suppressClicksUntil;
+        }
+
+        function suppressClicks(ms) {
+            suppressClicksUntil = Date.now() + (ms || 400);
+        }
+
+        // ================================================================
         //  PALETTE DE COULEURS
         // ================================================================
         var COLOR_PALETTE = [
@@ -1567,7 +1596,7 @@
         var DEFAULT_COLOR = '#a78bfa';
 
         // ================================================================
-        //  BIBLIOTHÈQUE D'ICÔNES
+        //  ICÔNES
         // ================================================================
         var ICON_LIBRARY = [
             { id: 'file',     svg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>' },
@@ -1686,15 +1715,28 @@
         }
 
         // ================================================================
-        //  LONG PRESS SUR LE LOGO
+        //  LONG PRESS SUR LE LOGO — VERSION ROBUSTE
         // ================================================================
         var introLogo = document.getElementById('intro-logo-wrap');
         var pressTimer = null;
         var pressStart = 0;
         var longPressTriggered = false;
+        var capturedPointerId = null;
 
         function startLogoPress(e) {
-            e.preventDefault();
+            // Ne PAS preventDefault ici → cause des clics fantômes sur mobile
+            // On utilise touch-action: none en CSS à la place
+
+            e.stopPropagation();
+
+            // Capture le pointeur pour ne rien perdre
+            try {
+                if (e.pointerId !== undefined) {
+                    introLogo.setPointerCapture(e.pointerId);
+                    capturedPointerId = e.pointerId;
+                }
+            } catch (err) {}
+
             pressStart = Date.now();
             longPressTriggered = false;
             introLogo.classList.add('pressing');
@@ -1704,30 +1746,53 @@
                 longPressTriggered = true;
                 pressTimer = null;
                 introLogo.classList.remove('pressing');
+
+                // ⚡ IMPORTANT : libérer immédiatement le pointeur
+                releasePointer();
+
+                // 🚫 Bloquer les clics fantômes pour 500ms
+                suppressClicks(500);
+
                 vibrate([20, 30, 20]);
                 playSuccessSound();
                 unlockBase();
             }, 600);
         }
 
+        function releasePointer() {
+            if (capturedPointerId !== null) {
+                try {
+                    introLogo.releasePointerCapture(capturedPointerId);
+                } catch (err) {}
+                capturedPointerId = null;
+            }
+        }
+
         function endLogoPress(e) {
+            e.stopPropagation();
+
             if (pressTimer !== null) {
                 clearTimeout(pressTimer);
                 pressTimer = null;
             }
             introLogo.classList.remove('pressing');
+            releasePointer();
+
             if (!longPressTriggered && Date.now() - pressStart < 600) {
                 vibrate(8);
+                // Bloquer aussi les clics après un tap simple
+                suppressClicks(200);
             }
             longPressTriggered = false;
         }
 
-        function cancelLogoPress() {
+        function cancelLogoPress(e) {
             if (pressTimer !== null) {
                 clearTimeout(pressTimer);
                 pressTimer = null;
             }
             introLogo.classList.remove('pressing');
+            releasePointer();
             longPressTriggered = false;
         }
 
@@ -1735,6 +1800,10 @@
         introLogo.addEventListener('pointerup', endLogoPress);
         introLogo.addEventListener('pointerleave', cancelLogoPress);
         introLogo.addEventListener('pointercancel', cancelLogoPress);
+        // Bloquer aussi les clicks naturels sur le logo
+        introLogo.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
 
         function unlockBase() {
             document.getElementById('home-intro').classList.add('hidden');
@@ -1810,7 +1879,6 @@
             card.className = 'snip-card';
             card.dataset.id = item.id;
             card.style.setProperty('--c', item.color);
-            card.title = 'Cliquer pour copier';
 
             var preview = item.value.length > 80 ? item.value.slice(0, 80) + '…' : item.value;
             preview = preview.replace(/\s+/g, ' ').trim() || '(vide)';
@@ -1827,6 +1895,13 @@
                 '</div>';
 
             card.addEventListener('click', function(e) {
+                // 🚫 Ignorer les clics fantômes
+                if (isClickSuppressed()) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    return;
+                }
+
                 if (e.target.closest('.snip-action')) return;
                 copySnippet(item.value, card);
             });
@@ -1834,12 +1909,14 @@
             card.querySelector('.edit').addEventListener('click', function(e) {
                 e.stopPropagation();
                 e.preventDefault();
+                if (isClickSuppressed()) return;
                 editSnippet(item);
             });
 
             card.querySelector('.delete').addEventListener('click', function(e) {
                 e.stopPropagation();
                 e.preventDefault();
+                if (isClickSuppressed()) return;
                 deleteSnippet(item);
             });
 
@@ -2091,6 +2168,7 @@
             showToast('Supprimé');
         }
 
+        // Retour au logo
         document.getElementById('base-header-logo').addEventListener('click', function() {
             playClickSound();
             vibrate(12);
@@ -2140,7 +2218,7 @@
         }
 
         function downloadFile(filename, content) {
-            // ===== MÉTHODE 1 : Blob + createObjectURL =====
+            // Méthode 1 : Blob
             try {
                 var blob = new Blob([content], { type: 'application/json;charset=utf-8' });
                 var url = URL.createObjectURL(blob);
@@ -2160,7 +2238,7 @@
                 console.warn('Blob échoué:', e1);
             }
 
-            // ===== MÉTHODE 2 : data: URI =====
+            // Méthode 2 : data URI
             try {
                 var dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
                 var a2 = document.createElement('a');
@@ -2178,7 +2256,7 @@
                 console.warn('data URI échoué:', e2);
             }
 
-            // ===== MÉTHODE 3 : msSaveBlob =====
+            // Méthode 3 : msSaveBlob
             try {
                 if (window.navigator && window.navigator.msSaveBlob) {
                     var blob3 = new Blob([content], { type: 'application/json' });
@@ -2222,7 +2300,6 @@
             if (success) {
                 showToast(list.length + ' snippet(s) exporté(s)');
             } else {
-                // Dernier recours : copier dans le presse-papier
                 copyToClipboard(jsonStr).then(function() {
                     showToast('JSON copié dans le presse-papier');
                 }).catch(function() {
@@ -2343,7 +2420,14 @@
                     socket.style.boxShadow = '';
                 });
 
-                socket.addEventListener('click', function() {
+                socket.addEventListener('click', function(e) {
+                    // 🚫 Ignorer les clics fantômes
+                    if (isClickSuppressed()) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return;
+                    }
+
                     socket.classList.add('tapping');
                     setTimeout(function() { socket.classList.remove('tapping'); }, 260);
 
