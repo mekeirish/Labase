@@ -1,10 +1,10 @@
 {
-  "name": "Labase",
-  "short_name": "Labase",
+  "name": "Labase3",
+  "short_name": "Labase3",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1c20",
-  "theme_color": "#4b6cb7",
+  "theme_color": "#1a1c20",
   "icons": [
     {
       "src": "icon.png",
