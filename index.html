@@ -1315,10 +1315,13 @@
         }
     </style>
 
-    <meta name="theme-color" content="#4b6cb7" />
+    <meta name="theme-color" content="#1a1c20" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-</head>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1c20">
+<link rel="apple-touch-icon" href="icon.png"></head>
 <body>
 
     <nav class="nav-bar">
@@ -2624,5 +2627,7 @@
         renderSnippets();
         updateVisibility();
     </script>
+
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));}</script>
 </body>
 </html>
