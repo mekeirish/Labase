@@ -150,6 +150,7 @@
             visibility: visible;
             pointer-events: auto;
         }
+        /* BLOCAGE TOTAL quand pas visible */
         .home-screen:not(.visible),
         .home-screen:not(.visible) * {
             pointer-events: none !important;
@@ -183,7 +184,7 @@
             display: inline-block;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            touch-action: none;
+            touch-action: none;  /* ⬅ contrôle total des gestes */
             animation: floatLogo 6s ease-in-out infinite;
         }
         @keyframes floatLogo {
@@ -1318,10 +1319,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a1c20">
-    <link rel="apple-touch-icon" href="icon.png">
-</head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1c20">
+<link rel="apple-touch-icon" href="icon.png"></head>
 <body>
 
     <nav class="nav-bar">
@@ -1571,7 +1571,7 @@
         }
 
         // ================================================================
-        //  GHOST CLICK BLOCKER
+        //  🔒 GHOST CLICK BLOCKER — empêche les clics fantômes
         // ================================================================
         var suppressClicksUntil = 0;
 
@@ -1599,7 +1599,7 @@
         var DEFAULT_COLOR = '#a78bfa';
 
         // ================================================================
-        //  ICONES
+        //  ICÔNES
         // ================================================================
         var ICON_LIBRARY = [
             { id: 'file',     svg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>' },
@@ -1641,14 +1641,9 @@
                 colorBg: 'rgba(167, 139, 250, 0.14)', colorBgSoft: 'rgba(167, 139, 250, 0.06)'
             },
             {
-                id: 'pwa-2', name: 'Sniper', url: 'https://mekeirish.github.io/Bsnipercode/',
+                id: 'pwa-2', name: 'Bcode', url: 'https://mekeirish.github.io/Bcode/',
                 color: '#22d3ee', colorDim: 'rgba(34, 211, 238, 0.5)',
                 colorBg: 'rgba(34, 211, 238, 0.14)', colorBgSoft: 'rgba(34, 211, 238, 0.06)'
-            },
-            {
-                id: 'pwa-apps', name: 'Apps', url: 'https://mekeirish.github.io/Bapps2/',
-                color: '#f472b6', colorDim: 'rgba(244, 114, 182, 0.5)',
-                colorBg: 'rgba(244, 114, 182, 0.14)', colorBgSoft: 'rgba(244, 114, 182, 0.06)'
             },
             {
                 id: 'pwa-3', name: 'Lab', url: 'https://mekeirish.github.io/Blabcode/',
@@ -1673,7 +1668,7 @@
         ];
 
         // ================================================================
-        //  ETAT
+        //  ÉTAT
         // ================================================================
         var ACTIVE_KEY = 'activePwa_pc_v15';
         var BASE_STORAGE = 'laBase_v4';
@@ -1688,7 +1683,7 @@
         }
 
         // ================================================================
-        //  LA BASE - stockage
+        //  LA BASE — stockage
         // ================================================================
         function getSnippets() {
             try {
@@ -1723,7 +1718,7 @@
         }
 
         // ================================================================
-        //  LONG PRESS SUR LE LOGO
+        //  LONG PRESS SUR LE LOGO — VERSION ROBUSTE
         // ================================================================
         var introLogo = document.getElementById('intro-logo-wrap');
         var pressTimer = null;
@@ -1732,7 +1727,12 @@
         var capturedPointerId = null;
 
         function startLogoPress(e) {
+            // Ne PAS preventDefault ici → cause des clics fantômes sur mobile
+            // On utilise touch-action: none en CSS à la place
+
             e.stopPropagation();
+
+            // Capture le pointeur pour ne rien perdre
             try {
                 if (e.pointerId !== undefined) {
                     introLogo.setPointerCapture(e.pointerId);
@@ -1749,8 +1749,13 @@
                 longPressTriggered = true;
                 pressTimer = null;
                 introLogo.classList.remove('pressing');
+
+                // ⚡ IMPORTANT : libérer immédiatement le pointeur
                 releasePointer();
+
+                // 🚫 Bloquer les clics fantômes pour 500ms
                 suppressClicks(500);
+
                 vibrate([20, 30, 20]);
                 playSuccessSound();
                 unlockBase();
@@ -1768,14 +1773,17 @@
 
         function endLogoPress(e) {
             e.stopPropagation();
+
             if (pressTimer !== null) {
                 clearTimeout(pressTimer);
                 pressTimer = null;
             }
             introLogo.classList.remove('pressing');
             releasePointer();
+
             if (!longPressTriggered && Date.now() - pressStart < 600) {
                 vibrate(8);
+                // Bloquer aussi les clics après un tap simple
                 suppressClicks(200);
             }
             longPressTriggered = false;
@@ -1795,6 +1803,7 @@
         introLogo.addEventListener('pointerup', endLogoPress);
         introLogo.addEventListener('pointerleave', cancelLogoPress);
         introLogo.addEventListener('pointercancel', cancelLogoPress);
+        // Bloquer aussi les clicks naturels sur le logo
         introLogo.addEventListener('click', function(e) {
             e.stopPropagation();
         });
@@ -1840,13 +1849,13 @@
 
                 if (currentSearch && getSnippets().length > 0) {
                     empty.innerHTML =
-                        '<div class="base-empty-icon">&#128269;</div>' +
-                        '<div class="base-empty-title">Aucun resultat</div>';
+                        '<div class="base-empty-icon">🔍</div>' +
+                        '<div class="base-empty-title">Aucun résultat</div>';
                 } else {
                     empty.innerHTML =
-                        '<div class="base-empty-icon">&#128230;</div>' +
+                        '<div class="base-empty-icon">📦</div>' +
                         '<div class="base-empty-title">La Base est vide</div>' +
-                        '<div class="base-empty-text">Clique sur <b>Nouveau</b> pour creer ton premier snippet.</div>';
+                        '<div class="base-empty-text">Clique sur <b>Nouveau</b> pour créer ton premier snippet.</div>';
                 }
                 snippetsGrid.appendChild(empty);
                 return;
@@ -1874,7 +1883,7 @@
             card.dataset.id = item.id;
             card.style.setProperty('--c', item.color);
 
-            var preview = item.value.length > 80 ? item.value.slice(0, 80) + '...' : item.value;
+            var preview = item.value.length > 80 ? item.value.slice(0, 80) + '…' : item.value;
             preview = preview.replace(/\s+/g, ' ').trim() || '(vide)';
 
             card.innerHTML =
@@ -1884,16 +1893,18 @@
                     '<div class="snip-preview">' + escapeHtml(preview) + '</div>' +
                 '</div>' +
                 '<div class="snip-actions">' +
-                    '<button class="snip-action edit" title="Modifier" type="button">&#9998;</button>' +
-                    '<button class="snip-action delete" title="Supprimer" type="button">&#128465;</button>' +
+                    '<button class="snip-action edit" title="Modifier" type="button">✎</button>' +
+                    '<button class="snip-action delete" title="Supprimer" type="button">🗑</button>' +
                 '</div>';
 
             card.addEventListener('click', function(e) {
+                // 🚫 Ignorer les clics fantômes
                 if (isClickSuppressed()) {
                     e.stopPropagation();
                     e.preventDefault();
                     return;
                 }
+
                 if (e.target.closest('.snip-action')) return;
                 copySnippet(item.value, card);
             });
@@ -1934,7 +1945,7 @@
                     card.classList.add('copied');
                     setTimeout(function() { card.classList.remove('copied'); }, 900);
                 }
-                showToast('Copie');
+                showToast('Copié');
             }
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1958,7 +1969,7 @@
                 document.body.removeChild(ta);
                 if (cb) cb();
             } catch (e) {
-                showToast('Echec de la copie', true);
+                showToast('Échec de la copie', true);
             }
         }
 
@@ -2040,7 +2051,7 @@
             if (item) {
                 editingId = item.id;
                 formTitle.textContent = 'Modifier';
-                formHeaderIcon.textContent = '&#9998;';
+                formHeaderIcon.textContent = '✎';
                 formName.value = item.name;
                 formValue.value = item.value;
                 setSelectedColor(item.color || DEFAULT_COLOR);
@@ -2048,7 +2059,7 @@
             } else {
                 editingId = null;
                 formTitle.textContent = 'Nouveau snippet';
-                formHeaderIcon.textContent = '&#10024;';
+                formHeaderIcon.textContent = '✨';
                 formName.value = '';
                 formValue.value = '';
                 setSelectedColor(DEFAULT_COLOR);
@@ -2141,7 +2152,7 @@
 
             vibrate(20);
             playSuccessSound();
-            showToast(wasEditing ? 'Modifie' : 'Ajoute');
+            showToast(wasEditing ? 'Modifié' : 'Ajouté');
         });
 
         function editSnippet(item) {
@@ -2157,9 +2168,10 @@
             renderSnippets();
             vibrate([15, 40, 15]);
             playCloseSound();
-            showToast('Supprime');
+            showToast('Supprimé');
         }
 
+        // Retour au logo
         document.getElementById('base-header-logo').addEventListener('click', function() {
             playClickSound();
             vibrate(12);
@@ -2209,6 +2221,7 @@
         }
 
         function downloadFile(filename, content) {
+            // Méthode 1 : Blob
             try {
                 var blob = new Blob([content], { type: 'application/json;charset=utf-8' });
                 var url = URL.createObjectURL(blob);
@@ -2225,9 +2238,10 @@
                 }, 500);
                 return true;
             } catch (e1) {
-                console.warn('Blob echoue:', e1);
+                console.warn('Blob échoué:', e1);
             }
 
+            // Méthode 2 : data URI
             try {
                 var dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
                 var a2 = document.createElement('a');
@@ -2242,9 +2256,10 @@
                 }, 500);
                 return true;
             } catch (e2) {
-                console.warn('data URI echoue:', e2);
+                console.warn('data URI échoué:', e2);
             }
 
+            // Méthode 3 : msSaveBlob
             try {
                 if (window.navigator && window.navigator.msSaveBlob) {
                     var blob3 = new Blob([content], { type: 'application/json' });
@@ -2252,7 +2267,7 @@
                     return true;
                 }
             } catch (e3) {
-                console.warn('msSaveBlob echoue:', e3);
+                console.warn('msSaveBlob échoué:', e3);
             }
 
             return false;
@@ -2266,7 +2281,7 @@
         document.getElementById('btn-export').addEventListener('click', function() {
             var list = getSnippets();
             if (list.length === 0) {
-                showToast('Rien a exporter', true);
+                showToast('Rien à exporter', true);
                 return;
             }
 
@@ -2286,12 +2301,12 @@
             playSuccessSound();
 
             if (success) {
-                showToast(list.length + ' snippet(s) exporte(s)');
+                showToast(list.length + ' snippet(s) exporté(s)');
             } else {
                 copyToClipboard(jsonStr).then(function() {
-                    showToast('JSON copie dans le presse-papier');
+                    showToast('JSON copié dans le presse-papier');
                 }).catch(function() {
-                    showToast('Echec de l\'export', true);
+                    showToast('Échec de l\'export', true);
                 });
             }
         });
@@ -2345,7 +2360,7 @@
                     renderSnippets();
                     vibrate(20);
                     playSuccessSound();
-                    showToast(incoming.length + ' importe(s)');
+                    showToast(incoming.length + ' importé(s)');
 
                 } catch (err) {
                     showToast('JSON invalide', true);
@@ -2409,6 +2424,7 @@
                 });
 
                 socket.addEventListener('click', function(e) {
+                    // 🚫 Ignorer les clics fantômes
                     if (isClickSuppressed()) {
                         e.stopPropagation();
                         e.preventDefault();
@@ -2447,7 +2463,7 @@
                 pwa.name +
                 '<span class="pwa-card-url">' + pwa.url + '</span>' +
                 '</span>' +
-                '<button class="pwa-card-reload" title="Recharger">&#8635;</button>';
+                '<button class="pwa-card-reload" title="Recharger">⟳</button>';
             header.querySelector('.pwa-card-reload').addEventListener('click', function(e) {
                 e.stopPropagation();
                 vibrate(10);
@@ -2456,9 +2472,6 @@
                 if (iframe) {
                     var loader = card.querySelector('.pwa-loader');
                     if (loader) loader.classList.remove('hidden');
-                    var err = card.querySelector('.pwa-error');
-                    if (err) err.remove();
-                    iframe.style.visibility = 'visible';
                     iframe.src = iframe.src;
                 }
             });
@@ -2469,7 +2482,7 @@
             var loader = document.createElement('div');
             loader.className = 'pwa-loader';
             loader.style.color = pwa.color;
-            loader.innerHTML = '<div class="spinner" style="border-color:' + pwa.colorBg + '; border-top-color:' + pwa.color + ';"></div><div>Chargement...</div>';
+            loader.innerHTML = '<div class="spinner" style="border-color:' + pwa.colorBg + '; border-top-color:' + pwa.color + ';"></div><div>Chargement…</div>';
             body.appendChild(loader);
 
             var iframe = document.createElement('iframe');
@@ -2508,11 +2521,11 @@
 
             var err = document.createElement('div');
             err.className = 'pwa-error';
-            err.innerHTML = '<div class="err-icon">&#9888;&#65039;</div>' +
+            err.innerHTML = '<div class="err-icon">⚠️</div>' +
                 '<div class="err-title">Page introuvable</div>' +
-                '<div class="err-msg">Cette URL ne repond pas. Verifie le nom du repo (majuscules/minuscules).</div>' +
+                '<div class="err-msg">Cette URL ne répond pas.</div>' +
                 '<div class="err-url">' + pwa.url + '</div>' +
-                '<button class="err-btn" style="background:' + pwa.colorBg + '; border-color:' + pwa.colorDim + '; color:' + pwa.color + ';">Reessayer</button>';
+                '<button class="err-btn" style="background:' + pwa.colorBg + '; border-color:' + pwa.colorDim + '; color:' + pwa.color + ';">Réessayer</button>';
             err.querySelector('.err-btn').addEventListener('click', function() {
                 err.remove();
                 if (iframe) {
@@ -2600,6 +2613,12 @@
             }
         });
 
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+                regs.forEach(function(r) { r.unregister(); });
+            });
+        }
+
         // ================================================================
         //  INIT
         // ================================================================
@@ -2609,5 +2628,6 @@
         updateVisibility();
     </script>
 
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));}</script>
 </body>
 </html>
